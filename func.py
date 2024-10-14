@@ -1,18 +1,15 @@
-import json
 import datetime
 
-statuses = frozenset('todo', 'in-progress', 'done')
+statuses = ('todo', 'in progress', 'done')
 
 class Task:
-    _id_counter = 0
-
-    def __init__(self, name, createdAt, updatedAt, status = statuses[0]) -> None:
-        Task._id_counter += 1
-        self.id = Task._id_counter
+    def __init__(self, name, date, status = statuses[0]) -> None:
         self.name = name
+        self.date = date
         self.status = status
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
+
+# def what_to_do():
     
-    def add():
-        name = str(input)
+
+# def main():
+    
