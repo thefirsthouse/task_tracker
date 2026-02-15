@@ -6,6 +6,54 @@ import datetime
 FILE_NAME = "tasks.json"
 
 
+def command_handler() -> str:
+    """
+    CLI command handler.
+    Gets commands, validates, and returns clear request.
+    
+    :return: Clear request and arguments (if exists)
+    :rtype: str
+    """
+
+    def is_arguments(args: list) -> bool:
+        """
+        Checks arguments existing (if needs)
+        
+        :param args: cli command
+        :type args: list
+        :return: True if exists, False if not
+        :rtype: bool
+        """
+
+        if len(args) < 3:
+            return False
+        return True
+
+    args = sys.argv
+
+    if len(args) < 2: # Command existing check
+        print("No command provided")
+        return
+    
+    command = args[1]
+    if command == "add":
+        if not is_arguments():
+            return
+        return {"command": command, "description": args[-1]}
+    elif command == "update":
+        if not is_arguments():
+            return
+        return {"command": command, "new_description": args[-1]}
+    elif command == "delete":
+        if not is_arguments():
+            return
+        return {"command": command, "id": args[-1]}
+    elif command == "list":
+        if is_arguments():
+            return {"command": command, "argument": args[-1]}
+        return {"command": command}
+
+
 def load_tasks() -> list:
     """
     Loading tasks and putting them into list of objects.
