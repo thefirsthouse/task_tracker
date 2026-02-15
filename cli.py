@@ -12,76 +12,82 @@ def command_handler() -> dict:
     Gets commands, validates, and returns clear request.
     
     :return: Clear request and arguments (if exists)
-    :rtype: str
+    :rtype: dict
     """
 
     def is_arguments(args: list) -> bool:
-        """
-        Checks arguments existing (if needs)
-        
-        :param args: cli command
-        :type args: list
-        :return: True if exists, False if not
-        :rtype: bool
-        """
-
-        if len(args) < 3:
-            return False
-        return True
+        """Checks arguments existence"""
+        return len(args) >= 3
 
     args = sys.argv
 
-    if len(args) < 2: # Command existing check
+    if len(args) < 2:  # Command existing check
         print("No command provided")
-        return
-    
+        return {"command": None}
+
     command = args[1]
     if command == "add":
         if not is_arguments(args):
-            return
-        return {"command": command, "description": args[-1]}
+            print("Description required")
+            return {"command": None}
+        description = " ".join(args[2:])
+        return {"command": command, "description": description}
     elif command == "update":
         if not is_arguments(args):
-            return
-        description = " ".join(args[2:])
-        return {"command": command, "new_description": args[-1]}
+            print("Arguments required for update")
+            return {"command": None}
+        new_description = " ".join(args[2:])
+        return {"command": command, "new_description": new_description}
     elif command == "delete":
         if not is_arguments(args):
-            return
-        return {"command": command, "id": args[-1]}
+            print("ID required for delete")
+            return {"command": None}
+        return {"command": command, "id": args[2]}
     elif command == "list":
-        if is_arguments(args):
-            argument = args[2] if len(args) > 2 else None
-            return {"command": command, "argument": argument}
-        return {"command": command}
+        argument = args[2] if len(args) > 2 else None
+        return {"command": command, "argument": argument}
+    else:
+        print("Invalid command")
+        return {"command": None}
 
 
 def load_tasks() -> list:
-    """
-    Loading tasks and putting them into list of objects.
-    
-    :return: list of Task objects
-    :rtype: list
-    """
-
+    """Loading tasks and putting them into list of objects."""
     if not os.path.exists(FILE_NAME):
         return []
     
     with open(FILE_NAME, "r") as file:
-        data = json.load(file)
+        try:
+            data = json.load(file)
+        except json.JSONDecodeError:
+            data = []
         return [Task.from_dict(item) for item in data]
 
 
 def save_tasks(tasks: list) -> None:
-    """
-    Puts tasks into list of dicts and pushes it to the FILE_NAME
-    
-    :param tasks: list of Task objects
-    :type tasks: list
-    """
+    """Puts tasks into list of dicts and pushes it to the FILE_NAME"""
     items = [item.to_dict() for item in tasks]
     with open(FILE_NAME, "w") as file:
-        json.dump(items, file, indent=4)
+        json.dump(items, file, indent=4, default=str)
+
+
+def add_task(description) -> None:
+    """Creates a task"""
+    tasks = load_tasks()
+    new_id = max((task.id for task in tasks), default=0) + 1
+
+    now = str(datetime.datetime.now())
+
+    task = Task(
+        id=new_id,
+        description=description,
+        status="todo",
+        created_at=now,
+        updated_at=now
+    )
+
+    tasks.append(task)
+    save_tasks(tasks)
 
 
 class Task:
@@ -93,11 +99,7 @@ class Task:
         self.updated_at = updated_at
     
     def to_dict(self) -> dict:
-        """
-        Puts values into dictionary
-        
-        :param self: objects
-        """
+        """Puts values into dictionary"""
         return {
             "id": self.id,
             "description": self.description,
@@ -106,25 +108,27 @@ class Task:
             "updated_at": self.updated_at
         }
     
-
     @classmethod
     def from_dict(cls, data: dict):
         """Get data from dict"""
         return cls(
             id=data["id"],
             description=data["description"],
-            status=data["status"],
-            created_at=data["created_at"],
-            updated_at=data["updated_at"]
+            status=data.get("status", "todo"),
+            created_at=data.get("created_at"),
+            updated_at=data.get("updated_at")
         )
 
 
 def main():
-    tasks = [Task(1, "Test", "todo", str(datetime.datetime.now()), str(datetime.datetime.now()))]
+    command = command_handler()
+    if command["command"] is None:
+        exit()
 
-    save_tasks(tasks)
-    svo = load_tasks()
-    print(svo)
+    if command["command"] == "add":
+        add_task(command["description"])
+        print("Task added successfully.")
+
 
 if __name__ == "__main__":
     main()
