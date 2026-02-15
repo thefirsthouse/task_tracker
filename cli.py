@@ -6,7 +6,14 @@ import datetime
 FILE_NAME = "tasks.json"
 
 
-def load_tasks():
+def load_tasks() -> list:
+    """
+    Loading tasks and putting them into list of objects.
+    
+    :return: list of Task objects
+    :rtype: list
+    """
+
     if not os.path.exists(FILE_NAME):
         return []
     
@@ -15,8 +22,13 @@ def load_tasks():
         return [Task.from_dict(item) for item in data]
 
 
-
-def save_tasks(tasks):
+def save_tasks(tasks: list) -> None:
+    """
+    Puts tasks into list of dicts and pushes it to the FILE_NAME
+    
+    :param tasks: list of Task objects
+    :type tasks: list
+    """
     items = [item.to_dict() for item in tasks]
     with open(FILE_NAME, "w") as file:
         json.dump(items, file, indent=4)
@@ -30,8 +42,12 @@ class Task:
         self.created_at = created_at
         self.updated_at = updated_at
     
-    def to_dict(self):
-        """Put data to dict"""
+    def to_dict(self) -> dict:
+        """
+        Puts values into dictionary
+        
+        :param self: objects
+        """
         return {
             "id": self.id,
             "description": self.description,
