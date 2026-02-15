@@ -6,7 +6,7 @@ import datetime
 FILE_NAME = "tasks.json"
 
 
-def command_handler() -> str:
+def command_handler() -> dict:
     """
     CLI command handler.
     Gets commands, validates, and returns clear request.
@@ -37,20 +37,22 @@ def command_handler() -> str:
     
     command = args[1]
     if command == "add":
-        if not is_arguments():
+        if not is_arguments(args):
             return
         return {"command": command, "description": args[-1]}
     elif command == "update":
-        if not is_arguments():
+        if not is_arguments(args):
             return
+        description = " ".join(args[2:])
         return {"command": command, "new_description": args[-1]}
     elif command == "delete":
-        if not is_arguments():
+        if not is_arguments(args):
             return
         return {"command": command, "id": args[-1]}
     elif command == "list":
-        if is_arguments():
-            return {"command": command, "argument": args[-1]}
+        if is_arguments(args):
+            argument = args[2] if len(args) > 2 else None
+            return {"command": command, "argument": argument}
         return {"command": command}
 
 
