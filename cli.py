@@ -61,6 +61,26 @@ def command_handler() -> dict:
             return {"command": None}
 
         return {"command": command, "id": task_id}
+    
+    elif command == "mark-in-progress" or "mark-done":
+        if not is_arguments(args):
+            print("Task ID is required")
+            return {"command": None}
+        
+        task_id_str = args[2]
+        try:
+            task_id = int(task_id_str)
+        except ValueError:
+            print("ID must be an integer")
+            return {"command": None}
+        
+        if command == "mark-in-progress":
+            status = "in-progress"
+        else:
+            status = "done"
+        
+        return {"command": command, "id": task_id, "status": status}
+
     elif command == "list":
         argument = args[2] if len(args) > 2 else None
         return {"command": command, "argument": argument}
@@ -168,6 +188,32 @@ def delete_task(id: int) -> bool:
     return False
 
 
+def mark_task(id: int, status: str) -> bool:
+    """
+    Edit task status
+    
+    :param id: Task id
+    :type id: int
+    :return: whether a task status was updated 
+    :rtype: bool
+    """
+
+    try:
+        id = int(id)
+    except (TypeError, ValueError):
+        return False
+    
+    tasks = load_tasks()
+    for task in tasks:
+        if task.id == id:
+            task.status = status
+            save_tasks(tasks)
+            print(f"Task {id} marked as {status}")
+            return True
+    
+    print(f"Task {id} not found")
+    return False
+
 class Task:
     def __init__(self, id, description, status="todo", created_at=None, updated_at=None):
         self.id = id
@@ -220,6 +266,15 @@ def main():
             print(f"Task {command["id"]} has been deleted")
         else:
             print("Delete failed")
+    
+    if command["command"] == "mark-in-progress" or command["command"] == "mark-done":
+        success = mark_task(command["id"], command["status"])
+        if success:
+            pass
+        else:
+            print("Delete failed")
+    
+
 
 
 if __name__ == "__main__":
