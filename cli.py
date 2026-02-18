@@ -52,7 +52,15 @@ def command_handler() -> dict:
         if not is_arguments(args):
             print("ID required for delete")
             return {"command": None}
-        return {"command": command, "id": args[2]}
+
+        task_id_str = args[2]
+        try:
+            task_id = int(task_id_str)
+        except ValueError:
+            print("ID must be an integer")
+            return {"command": None}
+
+        return {"command": command, "id": task_id}
     elif command == "list":
         argument = args[2] if len(args) > 2 else None
         return {"command": command, "argument": argument}
@@ -133,6 +141,34 @@ def update_task(id: int, new_description) -> bool:
     return found
 
 
+def delete_task(id: int) -> bool:
+    """
+    Deletes task by id. Returns True if a task was deleted.
+    
+    :param id: Task id
+    :type id: int
+    :return: whether a task was deleted
+    :rtype: bool
+    """
+
+    try:
+        id = int(id)
+    except (TypeError, ValueError):
+        return False
+
+    tasks = load_tasks()
+    for task in tasks:
+        if task.id == id:
+            tasks.remove(task)
+            save_tasks(tasks)
+            print(f"Task {id} deleted")
+            return True
+
+    # if we reach here, nothing was removed
+    print(f"Task {id} not found")
+    return False
+
+
 class Task:
     def __init__(self, id, description, status="todo", created_at=None, updated_at=None):
         self.id = id
@@ -178,6 +214,13 @@ def main():
             print(f"Task {command['id']} updated successfully")
         else:
             print("Update failed")
+    
+    if command["command"] == "delete":
+        success = delete_task(command["id"])
+        if success:
+            print(f"Task {command["id"]} has been deleted")
+        else:
+            print("Delete failed")
 
 
 
