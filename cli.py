@@ -34,10 +34,20 @@ def command_handler() -> dict:
         return {"command": command, "description": description}
     elif command == "update":
         if not is_arguments(args):
-            print("Arguments required for update")
+            print("ID and new description required for update")
             return {"command": None}
-        new_description = " ".join(args[2:])
-        return {"command": command, "new_description": new_description}
+
+        task_id_str = args[2]
+        try:
+            task_id = int(task_id_str)
+        except ValueError:
+            print("ID must be an integer")
+            return {"command": None}
+
+        new_description = " ".join(args[3:])
+
+        return {"command": command, "id": task_id, "new_description": new_description}
+
     elif command == "delete":
         if not is_arguments(args):
             print("ID required for delete")
@@ -71,7 +81,7 @@ def save_tasks(tasks: list) -> None:
         json.dump(items, file, indent=4, default=str)
 
 
-def add_task(description) -> None:
+def add_task(description: str) -> None:
     """Creates a task"""
     tasks = load_tasks()
     new_id = max((task.id for task in tasks), default=0) + 1
@@ -88,6 +98,39 @@ def add_task(description) -> None:
 
     tasks.append(task)
     save_tasks(tasks)
+
+
+def update_task(id: int, new_description) -> bool:
+    """
+    Updates task by id. Returns True if a task was updated.
+
+    :param id: Task id
+    :type id: int
+    :returns: whether an update occurred
+    :rtype: bool
+    """
+
+    # ensure id is integer
+    try:
+        id = int(id)
+    except (TypeError, ValueError):
+        return False
+
+    tasks = load_tasks()
+    found = False
+    for task in tasks:
+        if task.id == id:
+            task.description = new_description
+            task.updated_at = str(datetime.datetime.now())
+            found = True
+            break
+
+    if found:
+        save_tasks(tasks)
+        print(f"Task {id} updated")
+    else:
+        print(f"Task {id} not found")
+    return found
 
 
 class Task:
@@ -127,7 +170,15 @@ def main():
 
     if command["command"] == "add":
         add_task(command["description"])
-        print("Task added successfully.")
+        print("Task added successfully")
+    
+    if command["command"] == "update":
+        success = update_task(command["id"], command["new_description"])
+        if success:
+            print(f"Task {command['id']} updated successfully")
+        else:
+            print("Update failed")
+
 
 
 if __name__ == "__main__":
