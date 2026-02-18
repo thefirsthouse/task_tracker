@@ -163,8 +163,7 @@ def delete_task(id: int) -> bool:
             save_tasks(tasks)
             print(f"Task {id} deleted")
             return True
-
-    # if we reach here, nothing was removed
+    
     print(f"Task {id} not found")
     return False
 
@@ -221,7 +220,6 @@ def main():
             print(f"Task {command["id"]} has been deleted")
         else:
             print("Delete failed")
-
 
 
 if __name__ == "__main__":
