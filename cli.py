@@ -21,7 +21,7 @@ def command_handler() -> dict:
 
     args = sys.argv
 
-    if len(args) < 2:  # Command existing check
+    if len(args) < 2: ## unremove after debug
         print("No command provided")
         return {"command": None}
 
@@ -62,7 +62,7 @@ def command_handler() -> dict:
 
         return {"command": command, "id": task_id}
     
-    elif command == "mark-in-progress" or "mark-done":
+    elif command == "mark-in-progress" or command == "mark-done":
         if not is_arguments(args):
             print("Task ID is required")
             return {"command": None}
@@ -82,8 +82,14 @@ def command_handler() -> dict:
         return {"command": command, "id": task_id, "status": status}
 
     elif command == "list":
-        argument = args[2] if len(args) > 2 else None
-        return {"command": command, "argument": argument}
+        if is_arguments(args):
+            argument = args[2]
+            if argument not in ["todo", "in-progress", "done"]:
+                print("Invalid status filter. Use 'todo', 'in-progress', or 'done'.")
+                return {"command": None}
+            return {"command": command, "status_filter": argument}
+        return {"command": command}
+    
     else:
         print("Invalid command")
         return {"command": None}
@@ -214,6 +220,19 @@ def mark_task(id: int, status: str) -> bool:
     print(f"Task {id} not found")
     return False
 
+
+def show_tasks() -> None:
+    """
+    Shows all existing tasks
+    """
+
+    tasks = load_tasks()
+    for task in tasks:
+        print(task.id, task.description, task.status)
+    
+    print("=== END ===")
+
+
 class Task:
     def __init__(self, id, description, status="todo", created_at=None, updated_at=None):
         self.id = id
@@ -245,9 +264,15 @@ class Task:
 
 
 def main():
+    # DEBUG MODE
+    if len(sys.argv) == 1:
+        raw = input("Enter command: ")
+        sys.argv = ["cli.py"] + raw.split()
+
     command = command_handler()
-    if command["command"] is None:
-        exit()
+    # if handler returned no valid command, stop execution
+    if not command.get("command"):
+        return
 
     if command["command"] == "add":
         add_task(command["description"])
@@ -273,6 +298,15 @@ def main():
             pass
         else:
             print("Delete failed")
+    
+    if command["command"] == "list" and not command.get("status_filter"):
+        show_tasks()
+    elif command["command"] == "list" and command.get("status_filter"):
+        tasks = load_tasks()
+        filtered_tasks = [task for task in tasks if task.status == command["status_filter"]]
+        for task in filtered_tasks:
+            print(task.id, task.description, task.status)
+        print("=== END ===")
     
 
 
