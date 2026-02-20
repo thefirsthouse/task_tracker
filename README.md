@@ -35,3 +35,6 @@
 | `list [status]`                 | show all tasks, optionally filtered by status | `list` or `list todo`              |
 
 Valid statuses are `todo`, `in-progress`, and `done`.
+
+
+upd: readme created by copilot
