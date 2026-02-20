@@ -142,7 +142,6 @@ def update_task(task_id: int, new_description: str) -> bool:
         task.description = new_description
         task.updated_at = datetime.datetime.now().isoformat()
         save_tasks(tasks)
-        print(f"Task {task_id} updated")
         return True
     print(f"Task {task_id} not found")
     return False
